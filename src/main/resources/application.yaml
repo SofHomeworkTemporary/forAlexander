@@ -1,0 +1,25 @@
+service:
+  version: '@project.version@'
+
+spring:
+  application:
+    name: 'document-service'
+  servlet:
+    multipart:
+      enabled: 'true'
+      max-request-size: 256MB
+      max-file-size: 256MB
+  data:
+    mongodb:
+      authentication-database: admin
+      username: atink
+      database: document_data
+      password: atink
+      port: '27017'
+      host: localhost
+
+info:
+  app:
+    description: Responsible for storing and getting documents
+    name: ${spring.application.name}
+    version: ${service.version}
