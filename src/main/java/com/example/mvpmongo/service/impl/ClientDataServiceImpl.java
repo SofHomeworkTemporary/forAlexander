@@ -1,5 +1,6 @@
 package com.example.mvpmongo.service.impl;
 
+import com.example.mvpmongo.exception.MongoException;
 import com.example.mvpmongo.mapper.ClientDataMapper;
 import com.example.mvpmongo.model.ClientData;
 import com.example.mvpmongo.model.DocumentFile;
@@ -52,7 +53,7 @@ public class ClientDataServiceImpl implements ClientDataService {
     @Override
     public ClientData signNoDataFrom(String clientId, String documentId) {
         DocumentFile document = documentFileRepository.findById(documentId).orElseThrow(
-                () -> new RuntimeException("Не тот документ"));
+                () -> new MongoException("Wrong document"));
         Optional<ClientData> clientData = clientDataRepository.findByClientId(clientId);
         ClientData data = null;
         if (clientData.isEmpty()) {
@@ -74,7 +75,7 @@ public class ClientDataServiceImpl implements ClientDataService {
     @Override
     public ClientData signApplicationFrom(SignApplicationFormRequest form, String clientId, String documentId) {
         DocumentFile document = documentFileRepository.findById(documentId).orElseThrow(
-                () -> new RuntimeException("Не тот документ"));
+                () -> new MongoException("Wrong document"));
         Optional<ClientData> clientData = clientDataRepository.findByClientId(clientId);
         ClientData data = null;
         if (clientData.isEmpty()) {
@@ -112,7 +113,7 @@ public class ClientDataServiceImpl implements ClientDataService {
     @Override
     public ClientData signPersonalDataForm(SignPersonalDataProcessingRequest form, String clientId, String documentId) {
         DocumentFile document = documentFileRepository.findById(documentId).orElseThrow(
-                () -> new RuntimeException("Не тот документ"));
+                () -> new MongoException("Wrong document"));
         Optional<ClientData> clientData = clientDataRepository.findByClientId(clientId);
         ClientData data = null;
         if (clientData.isEmpty()) {
@@ -142,7 +143,9 @@ public class ClientDataServiceImpl implements ClientDataService {
     @Override
     public List<SignedDocument> searchSignedDocumentByDocumentId(String requestedClientId, String requestedDocumentId) {
         UnwindOperation unwind = Aggregation.unwind("documents");
-        MatchOperation match = Aggregation.match(Criteria.where("documents.clientId").is(requestedClientId).and("documents.documentId").is(requestedDocumentId));
+        MatchOperation match = Aggregation.match(Criteria.where("documents.clientId")
+                .is(requestedClientId).and("documents.documentId")
+                .is(requestedDocumentId));
         Aggregation aggregation = Aggregation.newAggregation(unwind, match);
         AggregationResults<SignedDocumentUnwind> results = mongoTemplate.aggregate(aggregation, "client-data",
                 SignedDocumentUnwind.class);
@@ -167,7 +170,7 @@ public class ClientDataServiceImpl implements ClientDataService {
         ClientData clientData = performChecks(documentId, clientId);
         DocumentFile documentFile = documentFileRepository
                 .findById(documentId)
-                .orElseThrow(() -> new RuntimeException("Document template with this id is not present"));
+                .orElseThrow(() -> new MongoException("Document template with this id is not present"));
         Binary document = documentFile.getDocument();
         byte[] fileBytes = document.getData();
         InputStream targetStream = new ByteArrayInputStream(fileBytes);
@@ -181,7 +184,7 @@ public class ClientDataServiceImpl implements ClientDataService {
         ClientData clientData = performChecks(documentId, clientId);
         DocumentFile documentFile = documentFileRepository
                 .findById(documentId)
-                .orElseThrow(() -> new RuntimeException("Document template with this id is not present"));
+                .orElseThrow(() -> new MongoException("Document template with this id is not present"));
         Binary document = documentFile.getDocument();
         byte[] fileBytes = document.getData();
         InputStream targetStream = new ByteArrayInputStream(fileBytes);
@@ -206,12 +209,12 @@ public class ClientDataServiceImpl implements ClientDataService {
     private ClientData performChecks(String documentId, String clientId) {
         ClientData clientData = clientDataRepository
                 .findByClientId(clientId)
-                .orElseThrow(() -> new RuntimeException("Client is not present in db"));
+                .orElseThrow(() -> new MongoException("Client is not present in db"));
         clientData
                 .getDocuments()
                 .stream()
                 .filter(document -> document.getDocumentId().equals(documentId))
-                .findFirst().orElseThrow(() -> new RuntimeException("Document with this id is not present"));
+                .findFirst().orElseThrow(() -> new MongoException("Document with this id is not present"));
         return clientData;
     }
 

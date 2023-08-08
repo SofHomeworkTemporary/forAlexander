@@ -1,5 +1,6 @@
 package com.example.mvpmongo.service.impl;
 
+import com.example.mvpmongo.exception.MongoException;
 import com.example.mvpmongo.model.DocumentFile;
 import com.example.mvpmongo.model.dto.response.DocumentResponse;
 import com.example.mvpmongo.repository.DocumentFileRepository;
@@ -35,7 +36,7 @@ public class DocumentFileServiceImpl implements DocumentFileService {
     @Override
     public DocumentResponse getDocument(String id) {
         DocumentFile documentFile = documentFileRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("No document found"));
+                .orElseThrow(() -> new MongoException("No document found"));
         Resource resource = new ByteArrayResource(documentFile.getDocument().getData());
 
         return new DocumentResponse(resource,documentFile.getTitle());
