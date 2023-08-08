@@ -199,6 +199,7 @@ public class ClientDataServiceImpl implements ClientDataService {
         os.close();
         byte[] pdf = Files.readAllBytes(Path.of(outputFilePath));
         Resource resource = new ByteArrayResource(pdf);
+        Files.delete(Path.of(outputFilePath));
         return new DocumentResponse(resource, documentFile.getTitle().replace(".docx", ".pdf"));
     }
 
